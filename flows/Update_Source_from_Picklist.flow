@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <assignments>
+        <name>Assign_Source_to_Intake</name>
+        <label>Assign Source to Intake</label>
+        <locationX>575</locationX>
+        <locationY>50</locationY>
+        <assignmentItems>
+            <assignToReference>svar_Intake.Id</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>var_IntakeID</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>svar_Intake.litify_pm__Source__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Lookup_Source_Record.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Assign_to_Collection</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_to_Collection</name>
+        <label>Assign to Collection</label>
+        <locationX>734</locationX>
+        <locationY>50</locationY>
+        <assignmentItems>
+            <assignToReference>scol_IntakesToUpdate</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>svar_Intake</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_All_Intakes</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <description>Check to see if a Source Record was found. If so, continue, otherwise exit the flow and do nothing.</description>
+        <name>Source_Found</name>
+        <label>Source Found?</label>
+        <locationX>413</locationX>
+        <locationY>52</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Yes</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Lookup_Source_Record</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Source_to_Intake</targetReference>
+            </connector>
+            <label>Yes</label>
+        </rules>
+    </decisions>
+    <description>This flow will update the Source Lookup field on the Intake Record type when the Source Picklist option is set or changed. This Flow is called from a Process Builder and needs the Intake ID and the Source Picklist value passed into the flow.</description>
+    <interviewLabel>Update Source from Picklist {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Update Source from Picklist</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <description>Lookup a Source Record based on the Source Name.</description>
+        <name>Lookup_Source_Record</name>
+        <label>Lookup Source Record</label>
+        <locationX>236</locationX>
+        <locationY>50</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Source_Found</targetReference>
+        </connector>
+        <filters>
+            <field>Name</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>var_SourceName</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>litify_pm__Source__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <description>Update all Intakes that are in the Update Collection.</description>
+        <name>Update_All_Intakes</name>
+        <label>Update All Intakes</label>
+        <locationX>901</locationX>
+        <locationY>50</locationY>
+        <inputReference>scol_IntakesToUpdate</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>50</locationX>
+        <locationY>50</locationY>
+        <connector>
+            <targetReference>Lookup_Source_Record</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+    <variables>
+        <description>Collection of Intakes to Update together.</description>
+        <name>scol_IntakesToUpdate</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>litify_pm__Intake__c</objectType>
+    </variables>
+    <variables>
+        <name>svar_Intake</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>litify_pm__Intake__c</objectType>
+    </variables>
+    <variables>
+        <name>var_IntakeID</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>var_SourceName</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>
