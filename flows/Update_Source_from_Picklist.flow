@@ -3,7 +3,7 @@
     <assignments>
         <name>Assign_Source_to_Intake</name>
         <label>Assign Source to Intake</label>
-        <locationX>575</locationX>
+        <locationX>634</locationX>
         <locationY>50</locationY>
         <assignmentItems>
             <assignToReference>svar_Intake.Id</assignToReference>
@@ -24,9 +24,32 @@
         </connector>
     </assignments>
     <assignments>
+        <name>Assign_Source_to_Matter</name>
+        <label>Assign Source to Matter</label>
+        <locationX>637</locationX>
+        <locationY>197</locationY>
+        <assignmentItems>
+            <assignToReference>svar_Matter.Id</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>var_MatterID</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>svar_Matter.litify_pm__Source__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Lookup_Source_Record.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Assign_to_Collection_0</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
         <name>Assign_to_Collection</name>
         <label>Assign to Collection</label>
-        <locationX>734</locationX>
+        <locationX>793</locationX>
         <locationY>50</locationY>
         <assignmentItems>
             <assignToReference>scol_IntakesToUpdate</assignToReference>
@@ -39,15 +62,31 @@
             <targetReference>Update_All_Intakes</targetReference>
         </connector>
     </assignments>
+    <assignments>
+        <name>Assign_to_Collection_0</name>
+        <label>Assign to Collection</label>
+        <locationX>796</locationX>
+        <locationY>197</locationY>
+        <assignmentItems>
+            <assignToReference>scol_MattersToUpdate</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>svar_Matter</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_All_Intakes_0</targetReference>
+        </connector>
+    </assignments>
     <decisions>
         <description>Check to see if a Source Record was found. If so, continue, otherwise exit the flow and do nothing.</description>
         <name>Source_Found</name>
         <label>Source Found?</label>
         <locationX>413</locationX>
-        <locationY>52</locationY>
+        <locationY>121</locationY>
         <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
         <rules>
-            <name>Yes</name>
+            <name>Yes_Intake</name>
             <conditionLogic>and</conditionLogic>
             <conditions>
                 <leftValueReference>Lookup_Source_Record</leftValueReference>
@@ -56,10 +95,39 @@
                     <booleanValue>false</booleanValue>
                 </rightValue>
             </conditions>
+            <conditions>
+                <leftValueReference>var_IntakeID</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
             <connector>
                 <targetReference>Assign_Source_to_Intake</targetReference>
             </connector>
-            <label>Yes</label>
+            <label>Yes Intake</label>
+        </rules>
+        <rules>
+            <name>Yes_Matter</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Lookup_Source_Record</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>var_MatterID</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Source_to_Matter</targetReference>
+            </connector>
+            <label>Yes Matter</label>
         </rules>
     </decisions>
     <description>This flow will update the Source Lookup field on the Intake Record type when the Source Picklist option is set or changed. This Flow is called from a Process Builder and needs the Intake ID and the Source Picklist value passed into the flow.</description>
@@ -83,7 +151,7 @@
         <name>Lookup_Source_Record</name>
         <label>Lookup Source Record</label>
         <locationX>236</locationX>
-        <locationY>50</locationY>
+        <locationY>119</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
             <targetReference>Source_Found</targetReference>
@@ -103,13 +171,21 @@
         <description>Update all Intakes that are in the Update Collection.</description>
         <name>Update_All_Intakes</name>
         <label>Update All Intakes</label>
-        <locationX>901</locationX>
+        <locationX>960</locationX>
         <locationY>50</locationY>
         <inputReference>scol_IntakesToUpdate</inputReference>
     </recordUpdates>
+    <recordUpdates>
+        <description>Update all Intakes that are in the Update Collection.</description>
+        <name>Update_All_Intakes_0</name>
+        <label>Update All Intakes</label>
+        <locationX>963</locationX>
+        <locationY>197</locationY>
+        <inputReference>scol_MattersToUpdate</inputReference>
+    </recordUpdates>
     <start>
         <locationX>50</locationX>
-        <locationY>50</locationY>
+        <locationY>119</locationY>
         <connector>
             <targetReference>Lookup_Source_Record</targetReference>
         </connector>
@@ -125,6 +201,14 @@
         <objectType>litify_pm__Intake__c</objectType>
     </variables>
     <variables>
+        <name>scol_MattersToUpdate</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>litify_pm__Matter__c</objectType>
+    </variables>
+    <variables>
         <name>svar_Intake</name>
         <dataType>SObject</dataType>
         <isCollection>false</isCollection>
@@ -133,7 +217,22 @@
         <objectType>litify_pm__Intake__c</objectType>
     </variables>
     <variables>
+        <name>svar_Matter</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>litify_pm__Matter__c</objectType>
+    </variables>
+    <variables>
         <name>var_IntakeID</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>var_MatterID</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
